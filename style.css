@@ -109,7 +109,7 @@ a:hover { text-decoration-color: var(--fg); }
 
 /* the slab: one of the owner's own, front and back (owner, 2026-11-16: "the floating look funny", "why are u adding
    holo shine", then "why is it angled"). It stands straight, face on, and turns over cleanly to the cash on its back
-   when tapped or when its button is pressed. Thin clear edges so a turn never shows a sliver. No shine
+   when swiped or tapped (no button). Thin clear edges so a turn never shows a sliver. No shine
    effects on the card: the photo is the card. Still, face on, without the script. */
 .stage { position: relative; display: grid; justify-items: center; perspective: 1800px; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
 .slab3d {
@@ -118,7 +118,8 @@ a:hover { text-decoration-color: var(--fg); }
   position: relative; width: var(--w); aspect-ratio: 640 / 1080;
   transform-style: preserve-3d; transform: rotateX(var(--rx)) rotateY(var(--ry));
 }
-.live .slab3d { cursor: pointer; }
+.live .slab3d { cursor: grab; }
+.dragging .slab3d { cursor: grabbing; }
 .face { position: absolute; inset: 0; border-radius: 2.6%; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; transform: translateZ(calc(var(--t) / 2)); background: #2a2b2e; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12); }
 .face.back { transform: rotateY(180deg) translateZ(calc(var(--t) / 2)); }
 .face img { display: block; width: 100%; height: 100%; object-fit: cover; filter: brightness(var(--lit)); -webkit-user-drag: none; pointer-events: none; }
@@ -131,9 +132,6 @@ a:hover { text-decoration-color: var(--fg); }
 .wall.b { bottom: calc(var(--t) / -2); transform: rotateX(-90deg); }
 .shadow { width: min(240px, 50vw); height: 16px; margin-top: 30px; border-radius: 50%; background: rgba(0, 0, 0, .65); filter: blur(10px); }
 .slab-caption { margin: 18px 0 0; font: italic 400 1.05rem/1.3 var(--display); color: var(--soft); text-align: center; }
-.flip { display: none; margin: 10px 0 0; padding: 8px 16px; background: transparent; color: var(--soft); border: 1px solid var(--rule); font: 500 .85rem/1.2 var(--sans); cursor: pointer; transition: border-color .3s, color .3s; }
-.flip:hover { border-color: var(--gold); color: var(--fg); }
-.live .flip { display: inline-block; }
 
 /* "What's in your stack?": paste certs, watch slab labels stack up, one tap copies them for Discord */
 .pricer-box { margin: 1.4rem 0 0; }
@@ -242,7 +240,7 @@ body { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
   .contact { padding: 110px 0; }
 }
 @media print {
-  .dock, .top nav, .flip { display: none; }
+  .dock, .top nav { display: none; }
   body { padding-bottom: 0; background: #fff; color: #000; }
 }
 
