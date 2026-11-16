@@ -19,6 +19,8 @@
   --rule: 3px solid var(--ink);
   --display: "Anton", "Impact", "Haettenschweiler", "Arial Narrow Bold", sans-serif;
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --ease: cubic-bezier(.2, .7, .15, 1);
+  --spring: cubic-bezier(.3, 1.45, .5, 1);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -33,7 +35,8 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
+/* scroll padding = the phone dock's height, so a focused link never lands behind the dock (WCAG 2.4.11); 0 once the dock hides */
+html { -webkit-text-size-adjust: 100%; scroll-padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
 body {
   margin: 0;
   background: var(--paper);
@@ -47,13 +50,15 @@ h1, h2, h3 { font-family: var(--display); font-weight: 400; text-transform: uppe
 p { margin: 0 0 1rem; }
 a { color: inherit; text-decoration: underline; text-decoration-color: var(--accent); text-decoration-thickness: 3px; text-underline-offset: 3px; }
 a:hover { text-decoration-color: currentColor; }
-:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+/* focus ring in ink (paper inside the inverted contact block): orange alone is under 3:1 on paper (WCAG 1.4.11) */
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.contact :focus-visible { outline-color: var(--paper); }
 
 .skip { position: absolute; left: 8px; top: -60px; z-index: 9; background: var(--accent); color: var(--on-accent); padding: 8px 12px; border: var(--rule); font-weight: 800; }
 .skip:focus { top: 8px; }
 
 /* header */
-.top { border-bottom: var(--rule); }
+.top { position: relative; border-bottom: var(--rule); }
 .top-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 64px; }
 .name { display: inline-flex; align-items: center; gap: 10px; font-family: var(--display); font-size: 1.55rem; text-transform: uppercase; text-decoration: none; line-height: 1; }
 .name::before { content: ""; width: 14px; height: 14px; background: var(--accent); border: 2px solid var(--ink); flex: none; }
@@ -66,14 +71,19 @@ a:hover { text-decoration-color: currentColor; }
   display: inline-block; min-height: 50px; padding: 12px 20px;
   background: var(--ink); color: var(--paper); border: var(--rule); border-radius: 0;
   font-weight: 800; font-size: 1.02rem; letter-spacing: 0.01em; text-decoration: none; line-height: 1.3;
+  --lx: 0px; --lift: var(--ink);
+  box-shadow: var(--lx) var(--lx) 0 0 var(--lift);
 }
 .btn:hover { background: var(--accent); color: var(--on-accent); }
+.btn:focus-visible { --lx: 4px; }
+@media (hover: hover) { .btn:hover { --lx: 4px; } }
+.btn:active { --lx: 0px; }
 .btn-line { background: var(--paper); color: var(--ink); }
 .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin: 1.6rem 0 0; }
 .actions span { font-weight: 600; }
 
 /* hero */
-.hero { padding: 36px 0 44px; }
+.hero { padding: 36px 0 44px; overflow-x: clip; }
 .hero-grid { display: grid; gap: 34px; align-items: center; }
 .crumbs { font-weight: 700; font-size: 0.9rem; margin-bottom: 14px; }
 .hero h1 { font-size: clamp(3.4rem, 16vw, 7.6rem); line-height: 0.88; margin-bottom: 22px; }
@@ -88,7 +98,7 @@ a:hover { text-decoration-color: currentColor; }
   background: var(--accent); color: var(--on-accent);
   border: var(--rule);
   box-shadow: 7px 7px 0 0 var(--ink);
-  transform: rotate(-4deg);
+  rotate: -4deg;
   line-height: 1;
 }
 .tag::before {
@@ -97,7 +107,24 @@ a:hover { text-decoration-color: currentColor; }
 }
 .tag-big { display: block; font-family: var(--display); text-transform: uppercase; font-size: 2.8rem; line-height: 0.95; }
 .tag-small { display: block; font-weight: 800; font-size: 1rem; margin-top: 6px; }
-.no-photo .tag-big { font-size: clamp(2.8rem, 11vw, 4.6rem); }
+.no-photo .tag-big { font-size: clamp(2.1rem, 8.5vw, 3.2rem); }
+.no-photo .hero-side { margin-bottom: 30px; }
+.no-photo .tag { position: absolute; left: -10px; bottom: -26px; width: max-content; max-width: min(21rem, calc(100vw - 48px)); }
+
+/* the slab: an abstract graded-card case in flat poster blocks; no label text, grade or grader mark */
+.slab { display: none; position: relative; isolation: isolate; width: clamp(150px, 42vw, 270px); transform: perspective(900px) rotateY(-10deg) rotateX(4deg); rotate: 3deg; }
+.no-photo .slab { display: block; }
+.slab::before { content: ""; position: absolute; inset: 0; z-index: -1; translate: 8px 8px; background: var(--ink); }
+.slab-face { display: grid; grid-template-rows: auto 1fr; gap: 8px; aspect-ratio: 5 / 8; padding: 10px; background: var(--paper-2); border: var(--rule); }
+.slab-label { display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 10px; background: var(--ink); }
+.slab-label::before { content: ""; flex: none; width: 12px; height: 12px; background: var(--accent); }
+.slab-label i { display: block; height: 4px; background: var(--paper); }
+.slab-label i:nth-child(1) { width: 40%; }
+.slab-label i:nth-child(2) { width: 22%; }
+.slab-label i:nth-child(3) { width: 14%; }
+.slab-card { display: block; position: relative; overflow: hidden; padding: 12% 10% 0; border: 2px solid var(--ink); background: var(--paper); }
+.slab-art { display: block; aspect-ratio: 4 / 3; border: 2px solid var(--ink); background: var(--ink); }
+.slab-card::after { content: ""; position: absolute; left: 10%; right: 10%; bottom: 10%; height: 18%; border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); }
 
 .hero-photo { margin: 0; border: var(--rule); background: var(--paper-2); }
 .hero-photo img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; }
@@ -153,7 +180,7 @@ details p { margin: 0 0 14px; max-width: 60ch; }
 /* contact: the inverted block */
 .contact { background: var(--ink); color: var(--paper); padding: 56px 0; margin-top: 20px; }
 .contact h2 { font-size: clamp(2.8rem, 12vw, 4.6rem); line-height: 0.9; margin-bottom: 18px; }
-.contact .btn { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.contact .btn { background: var(--accent); color: var(--on-accent); border-color: var(--accent); --lift: var(--accent); }
 .contact .btn:hover { background: var(--paper); color: var(--ink); border-color: var(--paper); }
 .contact-list { list-style: none; padding: 0; margin: 1.6rem 0 1.2rem; }
 .contact-list li { padding: 8px 0; border-top: 2px solid var(--paper); font-weight: 600; overflow-wrap: anywhere; }
@@ -180,21 +207,82 @@ body { padding-bottom: calc(70px + env(safe-area-inset-bottom)); }
 @media (min-width: 820px) {
   .wrap { padding-left: 28px; padding-right: 28px; }
   .dock { display: none; }
+  html { scroll-padding-bottom: 0; }
   body { padding-bottom: 0; }
   .hero { padding: 64px 0 72px; }
   .hero-grid { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 48px; }
   .has-photo .hero-grid { grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); }
   .no-photo .hero-side { justify-self: center; margin-top: 40px; }
+  .no-photo .tag { left: -44px; bottom: -28px; }
   .sec { padding: 72px 0; }
   .sec + .sec .wrap { padding-top: 56px; }
   .sec-grid { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: 40px; }
   .contact { padding: 80px 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .tag, .label { transform: none; }
+  .tag, .slab { rotate: none; }
+  .slab, .label { transform: none; }
 }
 @media print {
   .dock, .top nav { display: none; }
   body { padding-bottom: 0; }
   .contact { background: none; color: inherit; }
+}
+
+/* motion: CSS only, no JS. It runs only when the visitor hasn't asked for less motion and only on screens.
+   The rules above are the finished page, so Reduce Motion, print and older browsers get the still poster.
+   Transitions, @starting-style and the browser's own page crossfade only (see PlainLook in tests/test_site_build.py). */
+@media screen and (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  .top { view-transition-name: site-top; }
+  .dock { view-transition-name: site-dock; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .2s; }
+
+  /* the header rule draws across; the orange square pops in */
+  .top { border-bottom-color: transparent; }
+  .top::after { content: ""; position: absolute; left: 0; right: 0; bottom: -3px; height: 3px; background: var(--ink); transform-origin: 0 50%; transition: scale .7s var(--ease); }
+  .name::before { transition: scale .35s var(--spring) .45s, rotate .3s var(--ease); }
+  .name:hover::before, .name:focus-visible::before { rotate: 45deg; }
+
+  /* the hero gets pressed: headline stamps, lines follow, slab drops, tag slaps on last */
+  .hero h1 { transform-origin: 0 100%; transition: translate .45s var(--spring), scale .45s var(--spring); }
+  .hero h1 .sub { transition: opacity .4s var(--ease) .18s, translate .5s var(--ease) .18s; }
+  .hero .crumbs { transition: opacity .5s var(--ease), translate .5s var(--ease); }
+  .hero .lede { transition: opacity .5s var(--ease) .26s, translate .5s var(--ease) .26s; }
+  .hero .actions { transition: opacity .5s var(--ease) .34s, translate .5s var(--ease) .34s; }
+  .slab { transition: opacity .3s linear .2s, translate .6s var(--spring) .2s, rotate .6s var(--spring) .2s, transform .7s var(--ease); }
+  .tag { transition: opacity .15s linear .42s, scale .5s var(--spring) .42s, rotate .5s var(--spring) .42s, translate .5s var(--spring) .42s; }
+
+  /* buttons lift off the stack, press flat */
+  .btn { transition: background-color .18s, color .18s, border-color .18s, translate .2s var(--ease), box-shadow .2s var(--ease); }
+  .btn:focus-visible { translate: -4px -4px; }
+  @media (hover: hover) {
+    .btn:hover { translate: -4px -4px; }
+    .hero-side:hover .slab { transform: perspective(900px) rotateY(12deg) rotateX(-3deg); }
+  }
+  .btn:active { translate: 0 0; transition-duration: .06s; }
+  @media (hover: none) { .btn:active { translate: 2px 2px; } }
+
+  a { transition: text-decoration-color .16s, text-underline-offset .16s; }
+  a:hover { text-underline-offset: 5px; }
+
+  /* FAQ: the plus turns, the answer eases open where the browser can size to auto */
+  summary::after { transition: rotate .26s var(--ease); }
+  details[open] summary::after { rotate: 180deg; }
+  @supports (interpolate-size: allow-keywords) and selector(::details-content) {
+    :root { interpolate-size: allow-keywords; }
+    details::details-content { block-size: 0; overflow: clip; transition: block-size .28s var(--ease), content-visibility .28s allow-discrete; }
+    details[open]::details-content { block-size: auto; }
+  }
+
+  /* where each moving thing starts; keep this last and as specific as the rules it overrides */
+  @starting-style {
+    .top::after { scale: 0 1; }
+    .name::before { scale: 0; }
+    .hero h1 { translate: 0 -8px; scale: 1.06; }
+    .hero h1 .sub { opacity: 0; translate: -24px 0; }
+    .hero .crumbs, .hero .lede, .hero .actions { opacity: 0; translate: 0 14px; }
+    .slab { opacity: 0; translate: 0 -28px; rotate: -8deg; }
+    .tag { opacity: 0; scale: 1.5; rotate: -16deg; translate: 14px -20px; }
+  }
 }
