@@ -1,17 +1,17 @@
-/* The slab at the top of the page (owner, 2026-11-16: "the floating look funny"). It rests at a slight angle, leans
-   a little toward the mouse, and turns over cleanly to show the back when tapped, when Enter or Space is pressed on
-   it, or when "See the back" is pressed. No spinning on its own. Visitors who ask for less motion get the turn
-   without the lean. It does nothing while off screen. */
+/* The slab at the top of the page (owner, 2026-11-16: "the floating look funny"; then "why is it angled" and "when u
+   flip it it becomes cash"). It stands straight, face on, and turns over cleanly to show the back (the cash) when
+   tapped, when Enter or Space is pressed on it, or when its button is pressed. No lean, no spinning on its own. It
+   does nothing while off screen. */
 (function () {
   var stage = document.querySelector("[data-slab]");
   if (!stage) return;
   var slab = stage.querySelector(".slab3d"), button = stage.querySelector(".flip");
   var still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  var REST_Y = -12, REST_X = 3;   // the resting angle: a slab on a stand, seen a little from the side
+  var REST_Y = 0, REST_X = 0;     // straight, face on (owner: "why is it angled")
   var K = 70, C = 16.7;           // a stiff, fully damped spring: a turn takes about half a second, no wobble
   var side = 0;                   // 0 = front, 1 = back
-  var ry = REST_Y, rx = REST_X, vy = 0, vx = 0, leanY = 0, leanX = 0;
+  var ry = REST_Y, rx = REST_X, vy = 0, vx = 0;
   var visible = true, prev = 0, settled = false;
 
   function paint() {
@@ -23,7 +23,7 @@
   }
 
   function step(dt) {
-    var ty = REST_Y + side * 180 + leanY, tx = REST_X + leanX;
+    var ty = REST_Y + side * 180, tx = REST_X;
     vy += (K * (ty - ry) - C * vy) * dt; ry += vy * dt;
     vx += (K * (tx - rx) - C * vx) * dt; rx += vx * dt;
     return Math.abs(ty - ry) < 0.05 && Math.abs(vy) < 0.05 && Math.abs(tx - rx) < 0.05 && Math.abs(vx) < 0.05;
@@ -43,7 +43,7 @@
 
   function turn() {
     side = 1 - side;
-    button.textContent = side ? "See the front" : "See the back";
+    button.textContent = side ? (button.dataset.back || "See the front") : (button.dataset.to || "See the back");
     button.setAttribute("aria-pressed", side ? "true" : "false");
     wake();
   }
@@ -53,17 +53,6 @@
   slab.addEventListener("keydown", function (e) {
     if (e.key === "Enter" || e.key === " ") { e.preventDefault(); turn(); }
   });
-
-  // lean toward the mouse (not on touch screens, where it would fight scrolling)
-  if (!still && window.matchMedia && window.matchMedia("(hover: hover)").matches) {
-    stage.addEventListener("pointermove", function (e) {
-      var r = slab.getBoundingClientRect();
-      leanY = Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / r.width)) * 10;
-      leanX = Math.max(-1, Math.min(1, ((r.top + r.height / 2) - e.clientY) / r.height)) * 6;
-      wake();
-    });
-    stage.addEventListener("pointerleave", function () { leanY = 0; leanX = 0; wake(); });
-  }
 
   if ("IntersectionObserver" in window) {
     new IntersectionObserver(function (entries) { visible = entries[0].isIntersecting; if (visible) wake(); }).observe(stage);

@@ -108,12 +108,12 @@ a:hover { text-decoration-color: var(--fg); }
 .has-photo .tag { margin-top: 18px; }
 
 /* the slab: one of the owner's own, front and back (owner, 2026-11-16: "the floating look funny", "why are u adding
-   holo shine"). It rests at a slight angle like a slab on a stand, leans a little toward the pointer, and turns over
-   cleanly when tapped or when "See the back" is pressed. Thin clear edges so a turn never shows a sliver. No shine
+   holo shine", then "why is it angled"). It stands straight, face on, and turns over cleanly to the cash on its back
+   when tapped or when its button is pressed. Thin clear edges so a turn never shows a sliver. No shine
    effects on the card: the photo is the card. Still, face on, without the script. */
 .stage { position: relative; display: grid; justify-items: center; perspective: 1800px; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
 .slab3d {
-  --rx: 3deg; --ry: -12deg; --lit: 1; --edge: .5;
+  --rx: 0deg; --ry: 0deg; --lit: 1; --edge: 0;
   --w: min(320px, 66vw); --t: calc(var(--w) * .05);
   position: relative; width: var(--w); aspect-ratio: 640 / 1080;
   transform-style: preserve-3d; transform: rotateX(var(--rx)) rotateY(var(--ry));
