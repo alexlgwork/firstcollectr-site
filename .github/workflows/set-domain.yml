@@ -1,0 +1,18 @@
+# One-off helper: point GitHub Pages' custom domain at www.firstcollectr.com (the CNAME file is ignored when Pages
+# publishes from GitHub Actions). Run by hand: Actions > Set custom domain > Run workflow.
+name: Set custom domain
+on:
+  workflow_dispatch:
+permissions:
+  pages: write
+jobs:
+  domain:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set the custom domain
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/${{ github.repository }}/pages" --jq '"before: cname=" + (.cname // "none") + " source=" + .build_type + " https=" + (.https_enforced|tostring)'
+          gh api -X PUT "repos/${{ github.repository }}/pages" -f cname=www.firstcollectr.com -f build_type=workflow
+          gh api "repos/${{ github.repository }}/pages" --jq '"after: cname=" + (.cname // "none") + " status=" + (.status // "none")'
