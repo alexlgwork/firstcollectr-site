@@ -2,7 +2,8 @@
    it becomes cash"; then "i dont want a button i want to be able to swipe it ... just like the old floating one").
    It stands straight and still, face on. Swipe it (or drag it with the mouse) to spin it: it follows the finger, a
    flick keeps it turning, and when it slows it settles on the nearer side, the card or the cash. A tap turns it over;
-   so do Enter, Space and the arrow keys. Vertical swipes still scroll the page. It does nothing while off screen. */
+   so do Enter, Space and the arrow keys. Vertical swipes still scroll the page and never turn it. It does nothing
+   while off screen. */
 (function () {
   var stage = document.querySelector("[data-slab]");
   if (!stage) return;
@@ -13,7 +14,7 @@
   var DEG_PER_PX = 0.55;          // how far it turns per pixel dragged
   var ry = 0, vy = 0, base = 0;   // the angle, its speed (degrees per second), and the side it settles on
   var mode = "rest";              // "rest": spring to base; "fling": coasting after a swipe
-  var dragging = false, lastX = 0, lastT = 0, dragV = 0, moved = 0;
+  var dragging = false, lastX = 0, lastT = 0, dragV = 0, moved = 0, downY = 0;
   var visible = true, prev = 0, running = false;
 
   function paint() {
@@ -40,10 +41,12 @@
   }
 
   function frame(t) {
+    // (part525a, 2026-11-17) off screen or in a hidden tab the loop stops instead of asking for every frame; it picks
+    // the turn up where it left it when the slab is back in view (the observer) or the tab is shown again
+    if (!visible || document.hidden) { running = false; prev = 0; return; }
     var dt = prev ? Math.min(0.04, (t - prev) / 1000) : 0;
     prev = t;
-    var done = false;
-    if (visible && !document.hidden) { done = step(dt); paint(); }
+    var done = step(dt); paint();
     if (done && !dragging) { running = false; prev = 0; ry = base; paint(); return; }
     requestAnimationFrame(frame);
   }
@@ -58,7 +61,7 @@
   stage.addEventListener("pointerdown", function (e) {
     if (e.button !== undefined && e.button !== 0) return;
     dragging = true; stage.classList.add("dragging");
-    lastX = e.clientX; lastT = e.timeStamp; dragV = 0; moved = 0; vy = 0;
+    lastX = e.clientX; downY = e.clientY; lastT = e.timeStamp; dragV = 0; moved = 0; vy = 0;
     if (stage.setPointerCapture) stage.setPointerCapture(e.pointerId);
     wake();
   });
@@ -71,10 +74,14 @@
     lastX = e.clientX; lastT = e.timeStamp;
     paint();
   });
-  function release() {
+  function release(e) {
     if (!dragging) return;
     dragging = false; stage.classList.remove("dragging");
-    if (moved < 6) { turn(180); return; }            // a tap: turn it over
+    // a tap turns it over: only a pointerup that stayed put (part525a, 2026-11-17). A pointercancel is the browser
+    // taking the finger to scroll the page, and an up-and-down drag is a scroll too: neither turns it (the owner: "i
+    // want to be able to swipe it ... just like the old floating one", which never turned on a scroll). Both fall
+    // through to the fling below, which at no sideways speed settles back on the side it was on.
+    if (e.type === "pointerup" && moved < 6 && Math.abs(e.clientY - downY) < 10) { turn(180); return; }
     vy = Math.max(-1400, Math.min(1400, dragV));
     mode = "fling";
     wake();
@@ -91,8 +98,12 @@
   });
 
   if ("IntersectionObserver" in window) {
-    new IntersectionObserver(function (entries) { visible = entries[0].isIntersecting; if (visible) wake(); }).observe(stage);
+    new IntersectionObserver(function (entries) {
+      visible = entries[entries.length - 1].isIntersecting;     // the latest entry says where it is now
+      if (visible) wake();
+    }).observe(stage);
   }
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) wake(); });
   if (still) K = 400, C = 40;      // Reduce Motion: it settles all but at once
   stage.classList.add("live");
   paint();
